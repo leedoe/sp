@@ -165,11 +165,10 @@ int init_input_file(char *input_file)
 	int index = 0;
 	if (fp = fopen(filePath, "r")) {
 		while (!feof(fp)) {
-			token_table[index] = (token*)malloc(sizeof(token));
-			
-			fscanf(fp, "%s %d %x %d \n", inst[index]->str, &inst[index]->format, &inst[index]->op, &inst[index]->ops);
+			char* check = (char*)malloc(sizeof(char) * 10);
+			fscanf(fp, "%s", check);
 
-			index++;
+
 		}
 	}
 	else {
