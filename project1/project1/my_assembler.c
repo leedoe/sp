@@ -88,6 +88,14 @@ int init_my_assembler(void)
 static int assem_pass1(void)
 {
 	/* add your code here */
+	int i = 0;
+	token_line = 0;
+
+	for (i = 0; i < line_num; i++) {
+		if (token_parsing(i) < 0) {
+			return -1;
+		}
+	}
 	return 0;
 }
 
@@ -106,6 +114,7 @@ static int assem_pass2(void)
 {
 
 	/* add your code here */
+	make_objectcode(NULL);
 	return 0;
 }
 /* -----------------------------------------------------------------------------------
@@ -128,6 +137,7 @@ int init_inst_file(char *inst_file)
 	char filePath[12];
 	sprintf(filePath, "%s%s", "./", inst_file);
 	int index = 0;
+
 	if (fp = fopen(filePath, "r")) {
 		while (!feof(fp)) {
 			inst[index] = (inst_struct*)malloc(sizeof(inst_struct));
@@ -142,6 +152,7 @@ int init_inst_file(char *inst_file)
 	}
 
 	fclose(fp);
+	inst_index = index;
 
 	return 0;
 }
@@ -162,13 +173,15 @@ int init_input_file(char *input_file)
 	FILE* fp;
 	char filePath[12];
 	sprintf(filePath, "%s%s%s", "./", input_file, ".txt");
-	int index = 0;
+	line_num = 0;
+
 	if (fp = fopen(filePath, "r")) {
 		while (!feof(fp)) {
-			char* check = (char*)malloc(sizeof(char) * 10);
-			fscanf(fp, "%s", check);
+			int flag = 0;//No Label
+			input_data[line_num] = (char*)malloc(sizeof(char) * 128);
+			fgets(input_data[line_num], 128, fp);
 
-
+			line_num++;
 		}
 	}
 	else {
@@ -190,6 +203,119 @@ int init_input_file(char *input_file)
 int token_parsing(int index)
 {
 	/* add your code here */
+	int flag = 0;
+	char* temp = (char*)malloc(sizeof(char) * 128);
+	strcpy(temp, input_data[index]);
+
+	if (temp[0] == '.') {
+		return 0;
+	}
+	else if (temp[0] == '\t') {
+		flag = 1;
+	}
+	else {
+		label_num++;
+	}
+
+	token_table[token_line] = (token*)malloc(sizeof(token));
+	if (flag == 1) {
+		token_table[token_line]->label = (char*)malloc(sizeof(char) * 2);
+		strcpy(token_table[token_line]->label, "");
+	}
+
+	char* token = (char*)malloc(sizeof(char) * 64);
+	token = strtok(temp, "\t");
+
+	while (token != NULL) {
+		int i = 0;
+		int operandNumber = -1;//Check operand Number in op code table, initialize is No operator
+		int realOperandNumber = 0;//Count input operand
+		int opTableIndex = 0;
+		char* operandToken = (char*)malloc(sizeof(char) * 10);
+
+		switch (flag) {
+		case 0:
+			token_table[token_line]->label = (char*)malloc(sizeof(char) * strlen(token) + 1);
+			strcpy(token_table[token_line]->label, token);
+			flag++;
+			break;
+		case 1:
+			token_table[token_line]->operator_ = (char*)malloc(sizeof(char) * strlen(token) + 1);
+			strcpy(token_table[token_line]->operator_, token);
+			flag++;
+			break;
+		case 2:
+			//
+			//instruction set을 찾아서 operand가 몇갠지 알아낸다
+			//operand 개수만큼 token_table에 있는 operand를 입력받는다
+			//operand 개수만큼 입력이 없다면 모두 입력 받은 후 break;
+			//
+			for (i = 0; i < 3; i++) {
+				token_table[token_line]->operand[i] = NULL;
+			}
+			
+			opTableIndex = search_opcode(token_table[token_line]->operator_);
+			if (opTableIndex == -1) {
+				operandNumber = -1;
+			}
+			else {
+				operandNumber = inst[opTableIndex]->ops;
+			}
+
+			if (operandNumber == -1) {
+				//No operator
+				token_table[token_line]->operand[0] = (char*)malloc(sizeof(char) * strlen(token) + 1);
+				if (token[strlen(token) - 1] == '\n') {
+					token[strlen(token) - 1] = '\0';
+				}
+				strcpy(token_table[token_line]->operand[0], token);
+			}
+			else if(operandNumber == 0) {
+				flag++;
+				break;
+			}
+			else {
+				//operator
+				int tokenIndex = 0;
+				int operandNumber = 0;
+				for (i = 0; i < strlen(token); i++) {
+					if (token[i] == ',') {
+						token_table[token_line]->operand[operandNumber] = (char*)malloc(sizeof(char) * strlen(operandToken) + 1);
+						strncpy(token_table[token_line]->operand[operandNumber], operandToken, tokenIndex);
+						token_table[token_line]->operand[operandNumber][tokenIndex] = '\0';
+						tokenIndex = 0;
+						operandNumber++;
+					}
+					else if (i == strlen(token) - 1) {
+						operandToken[tokenIndex++] = token[i];
+						token_table[token_line]->operand[operandNumber] = (char*)malloc(sizeof(char) * strlen(token) + 1);
+						strncpy(token_table[token_line]->operand[operandNumber], operandToken, tokenIndex);
+						token_table[token_line]->operand[operandNumber][tokenIndex] = '\0';
+					}
+					else {
+						operandToken[tokenIndex++] = token[i];
+					}
+				}
+			}
+
+			flag++;
+			break;
+		case 3:
+			token_table[token_line]->comment = (char*)malloc(sizeof(char) * strlen(token) + 1);
+			strcpy(token_table[token_line]->comment, token);
+			flag++;
+			break;
+		default:
+			break;
+		}
+
+		token = strtok(NULL, "\t");
+	}
+
+	token_line++;
+
+	free(temp);
+
 	return 0;
 }
 /* -----------------------------------------------------------------------------------
@@ -201,10 +327,16 @@ int token_parsing(int index)
 * -----------------------------------------------------------------------------------
 */
 
-int search_opcode(char *str)
-{
-	/* add your code here */
-	return 0;
+int search_opcode(char *str){
+	int i = 0;
+
+	for (i = 0; i < inst_index; i++) {
+		if (strcmp(inst[i]->str, str) == 0) {
+			return i;
+		}
+	}
+
+	return -1;
 }
 /* -----------------------------------------------------------------------------------
 * 설명 : 입력된 문자열의 이름을 가진 파일에 프로그램의 결과를 저장하는 함수이다.
@@ -219,6 +351,35 @@ int search_opcode(char *str)
 void make_objectcode(char *file_name)
 {
 	/* add your code here */
+	int i = 0;
+	for (i = 0; i < token_line - 1; i++) {
+		int j = 0;
+		int operandNumber = 0;
+
+		printf("%s\t", token_table[i]->label);
+		printf("%s\t", token_table[i]->operator_);
+
+		for (operandNumber = 0; operandNumber < 3; operandNumber++) {
+			if (token_table[i]->operand[operandNumber] != NULL && operandNumber != 0) {
+				printf(",%s", token_table[i]->operand[operandNumber]);
+			}
+			else if (token_table[i]->operand[operandNumber] != NULL) {
+				printf("%s", token_table[i]->operand[operandNumber]);
+			}
+			else {
+				break;
+			}
+		}
+		printf("\t");
+
+		for (j = 0; j < inst_index; j++) {
+			if (strcmp(token_table[i]->operator_, inst[j]->str) == 0) {
+				printf("%02X", inst[j]->op);
+			}
+		}
+
+		printf("\n");
+	}
 
 }
 
