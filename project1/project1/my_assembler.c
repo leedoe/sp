@@ -87,7 +87,6 @@ int init_my_assembler(void)
 
 static int assem_pass1(void)
 {
-	/* add your code here */
 	int i = 0;
 	token_line = 0;
 
@@ -112,8 +111,6 @@ static int assem_pass1(void)
 
 static int assem_pass2(void)
 {
-
-	/* add your code here */
 	make_objectcode(NULL);
 	return 0;
 }
@@ -169,7 +166,6 @@ int init_inst_file(char *inst_file)
 
 int init_input_file(char *input_file)
 {
-	/* add your code here */
 	FILE* fp;
 	char filePath[12];
 	sprintf(filePath, "%s%s%s", "./", input_file, ".txt");
@@ -202,7 +198,6 @@ int init_input_file(char *input_file)
 
 int token_parsing(int index)
 {
-	/* add your code here */
 	int flag = 0;
 	char* temp = (char*)malloc(sizeof(char) * 128);
 	strcpy(temp, input_data[index]);
@@ -256,14 +251,15 @@ int token_parsing(int index)
 			
 			opTableIndex = search_opcode(token_table[token_line]->operator_);
 			if (opTableIndex == -1) {
+				//No operator and No operand
 				operandNumber = -1;
 			}
 			else {
+				//operator exist and store operand Number
 				operandNumber = inst[opTableIndex]->ops;
 			}
 
 			if (operandNumber == -1) {
-				//No operator
 				token_table[token_line]->operand[0] = (char*)malloc(sizeof(char) * strlen(token) + 1);
 				if (token[strlen(token) - 1] == '\n') {
 					token[strlen(token) - 1] = '\0';
@@ -275,9 +271,7 @@ int token_parsing(int index)
 				break;
 			}
 			else {
-				//operator
 				int tokenIndex = 0;
-				int operandNumber = 0;
 				for (i = 0; i < strlen(token); i++) {
 					if (token[i] == ',') {
 						token_table[token_line]->operand[operandNumber] = (char*)malloc(sizeof(char) * strlen(operandToken) + 1);
@@ -350,7 +344,14 @@ int search_opcode(char *str){
 
 void make_objectcode(char *file_name)
 {
-	/* add your code here */
+
+	if (file_name != NULL) {
+		FILE* fp;
+		if ((fp = freopen(file_name, "w", stdout)) == NULL) {
+			return;
+		}
+	}
+
 	int i = 0;
 	for (i = 0; i < token_line - 1; i++) {
 		int j = 0;
