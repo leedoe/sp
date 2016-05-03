@@ -67,13 +67,15 @@ static int locctr;
 */
 struct literal_unit {
 	char name[10];
-	int operandValue;
+	char* operandValue;
 	int length;
 	int address;
 };
 
 typedef struct literal_unit literal;
 literal lit_table[MAX_LINES];
+
+static int literal_num;
 //--------------
 
 static char *input_file;

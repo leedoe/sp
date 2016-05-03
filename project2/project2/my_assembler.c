@@ -242,7 +242,7 @@ int token_parsing(int index)
 			
 			//symbol table
 			strcpy(sym_table[sym_line].symbol, token);
-			sym_table[sym_line++].addr = locctr;
+			sym_table[sym_line].addr = locctr;
 
 			flag++;
 			break;
@@ -306,6 +306,12 @@ int token_parsing(int index)
 					token[strlen(token) - 1] = '\0';
 				}
 				strcpy(token_table[token_line]->operand[0], token);
+				
+				//if operator START, set locctr
+				if (strcmp(token_table[token_line]->operator_, "START") == 0) {
+					locctr = atoi(token);
+					sym_table[sym_line].addr = locctr;
+				}
 
 				if (strcmp(token_table[token_line]->operator_, "RESW") == 0) {
 					format = atoi(token) * 3;
@@ -340,17 +346,51 @@ int token_parsing(int index)
 						token_table[token_line]->operand[operandNumber - 1] = (char*)malloc(sizeof(char) * strlen(token) + 1);
 						
 						if (token[strlen(token) - 1] == '\n') {
-							token[strlen(token) - 1] = '\0';
+							operandToken[strlen(token) - 1] = '\0';
 							strcpy(token_table[token_line]->operand[operandNumber - 1], operandToken);
 						}
 						else {
-							token[strlen(token)] = '\0';
+							operandToken[strlen(token)] = '\0';
 							strcpy(token_table[token_line]->operand[operandNumber - 1], operandToken);
 						}
 
 						//리터럴 테이블에 저장
 						if (token[0] == '=') {
+							int i = 0;
+							int literal_flag = 0;
+							for (i = 0; i < literal_num; i++) {
+								if (strcmp(lit_table[i].name, token) == 0) {
+									literal_flag = 1;
+									break;
+								}
+							}
+							
+							if (literal_flag == 0) {
+								int i;
 
+								strcpy(lit_table[literal_num].name, token);
+
+								//literal hex or character
+								if (token[1] == 'X') {
+									lit_table[literal_num].operandValue = (char*)malloc(sizeof(char) * (strlen(token) - 4) + 1);
+
+									for (i = 3; i < strlen(token) - 1; i++) {
+										lit_table[literal_num].operandValue[(i - 3)] = token[i];
+									}
+									lit_table[literal_num].operandValue[strlen(token) - 4] = '\0';
+								}
+								else if (token[1] == 'C') {
+									lit_table[literal_num].operandValue = (char*)malloc(sizeof(char) * (strlen(token) - 4) * 2 + 1);
+
+									for (i = 3; i < strlen(token) - 1; i++) {
+										sprintf(&lit_table[literal_num].operandValue[(i - 3) * 2], "%X", token[i]);
+									}
+								}
+
+								lit_table[literal_num].length = strlen(token) - 3;
+								lit_table[literal_num].address = locctr;
+								literal_num++;
+							}
 						}
 					}
 					else {
@@ -374,7 +414,7 @@ int token_parsing(int index)
 	}
 
 	locctr += format;
-	
+	sym_line++;
 	token_line++;
 
 
