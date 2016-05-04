@@ -216,6 +216,7 @@ int token_parsing(int index)
 	}
 
 	token_table[token_line] = (token*)malloc(sizeof(token));
+
 	if (flag == 1) {
 		token_table[token_line]->label = (char*)malloc(sizeof(char) * 2);
 		strcpy(token_table[token_line]->label, "");
@@ -240,9 +241,11 @@ int token_parsing(int index)
 			token_table[token_line]->label = (char*)malloc(sizeof(char) * strlen(token) + 1);
 			strcpy(token_table[token_line]->label, token);
 			
+			/*
 			//symbol table
 			strcpy(sym_table[sym_line].symbol, token);
 			sym_table[sym_line].addr = locctr;
+			*/
 
 			flag++;
 			break;
@@ -270,6 +273,7 @@ int token_parsing(int index)
 				token_table[token_line]->operand[i] = NULL;
 			}
 			
+			/*
 			if (token_table[token_line]->operator_[0] == '+') {
 				char* temp = &token_table[token_line]->operator_[1];
 				opTableIndex = search_opcode(temp);
@@ -288,6 +292,15 @@ int token_parsing(int index)
 						format = 3;
 					}
 				}
+			}
+			*/
+
+			if (token_table[token_line]->operator_[0] == '+') {
+				char* temp = &token_table[token_line]->operator_[1];
+				opTableIndex = search_opcode(temp);
+			}
+			else {
+				opTableIndex = search_opcode(token_table[token_line]->operator_);
 			}
 
 
@@ -308,6 +321,7 @@ int token_parsing(int index)
 				strcpy(token_table[token_line]->operand[0], token);
 				
 				//if operator START, set locctr
+				/*
 				if (strcmp(token_table[token_line]->operator_, "START") == 0) {
 					locctr = atoi(token);
 					sym_table[sym_line].addr = locctr;
@@ -325,7 +339,7 @@ int token_parsing(int index)
 				else if (strcmp(token_table[token_line]->operator_, "WORD") == 0) {
 					format = 3;
 				}
-
+				*/
 			}
 			else if (operandNumber == 0) {
 				flag++;
@@ -334,7 +348,7 @@ int token_parsing(int index)
 			else {
 				int tokenIndex = 0;
 				for (i = 0; i < strlen(token); i++) {
-					if (token[i] == ',') {
+					if (token[i] == ',' || token[i] == '-') {
 						token_table[token_line]->operand[operandNumber-1] = (char*)malloc(sizeof(char) * strlen(operandToken) + 1);
 						strncpy(token_table[token_line]->operand[operandNumber - 1], operandToken, tokenIndex);
 						token_table[token_line]->operand[operandNumber - 1][tokenIndex] = '\0';
@@ -355,6 +369,7 @@ int token_parsing(int index)
 						}
 
 						//리터럴 테이블에 저장
+						/*
 						if (token[0] == '=') {
 							int i = 0;
 							int literal_flag = 0;
@@ -392,6 +407,8 @@ int token_parsing(int index)
 								literal_num++;
 							}
 						}
+
+						*/
 					}
 					else {
 						operandToken[tokenIndex++] = token[i];
@@ -413,7 +430,70 @@ int token_parsing(int index)
 		token = strtok(NULL, "\t");
 	}
 
-	locctr += format;
+	//locctr += format;
+	token_table[token_line]->locctr = locctr;
+
+	int add = 0;
+	char* operator_ = token_table[token_line]->operator_;
+
+	//set locctr, set add value
+	if (strcmp(operator_, "START") == 0) {
+		locctr = atoi(token_table[token_line]->operand[0]);
+		token_table[token_line]->locctr = locctr;
+	}
+	else if (strcmp(operator_, "CSECT") == 0) {
+		locctr = 0;
+		token_table[token_line]->locctr = 0;
+	}
+	else if (strcmp(operator_, "EQU") == 0) {
+		//LOC가 아닌 값으로 바꿔줘야함
+	}
+	else if (strcmp(operator_, "LTORG") == 0 || strcmp(operator_, "END") == 0) {
+		//리터럴 풀에 있는 리터럴을 메모리 할당
+	}
+	else {
+		int index = search_opcode(operator_);
+
+		if (index == -1) {
+			if (strcmp(operator_, "RESW") == 0) {
+				add = atoi(token_table[token_line]->operand[0]) * 3;
+			}
+			else if (strcmp(operator_, "RESB") == 0) {
+				add = atoi(token_table[token_line]->operand[0]);
+			}
+			else if (strcmp(operator_, "WORD") == 0) {
+				add = 3;
+			}
+			else if (strcmp(operator_, "BYTE") == 0) {
+				add = 1;
+			}
+			else if (operator_[0] == '+') {
+				add = 4;
+			}
+		}
+		else {
+			int format = inst[index]->format;
+			if (format == 1) {
+				add = 1;
+			}
+			else if (format == 2) {
+				add = 2;
+			}
+			else if (format == 34) {
+				add = 3;
+			}
+		}
+	}
+
+	//if label exist, input symbol table
+	if (strcmp(token_table[token_line]->label, "") != 0) {
+		strcpy(sym_table[sym_line].symbol, token_table[token_line]->label);
+		sym_table[sym_line].addr = locctr;
+	}
+
+
+
+	locctr += add;
 	sym_line++;
 	token_line++;
 

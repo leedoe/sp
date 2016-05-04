@@ -32,6 +32,7 @@ static int line_num;
 int label_num;
 
 struct token_unit {
+	int locctr;
 	char *label;
 	char *operator_;
 	char *operand[MAX_OPERAND];
