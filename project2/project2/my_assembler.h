@@ -37,6 +37,7 @@ struct token_unit {
 	char *operator_;
 	char *operand[MAX_OPERAND];
 	char *comment;
+	char* objectCode;
 };
 
 typedef struct token_unit token;
@@ -77,6 +78,12 @@ typedef struct literal_unit literal;
 literal lit_table[MAX_LINES];
 
 static int literal_num;
+
+/*
+오브젝트 프로그램을 관리하는 변수
+*/
+char* objectProgramLine[MAX_LINES];
+int objectProgramIndex;
 //--------------
 
 static char *input_file;
