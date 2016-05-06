@@ -264,8 +264,6 @@ int token_parsing(int index)
 			//operand 개수만큼 token_table에 있는 operand를 입력받는다
 			//operand 개수만큼 입력이 없다면 모두 입력 받은 후 break;
 			//
-			
-
 			if (token_table[token_line]->operator_[0] == '+') {
 				char* temp = &token_table[token_line]->operator_[1];
 				opTableIndex = search_opcode(temp);
@@ -273,7 +271,6 @@ int token_parsing(int index)
 			else {
 				opTableIndex = search_opcode(token_table[token_line]->operator_);
 			}
-
 
 			if (opTableIndex == -1) {
 				//No operator and No operand
@@ -284,6 +281,7 @@ int token_parsing(int index)
 				operandNumber = inst[opTableIndex]->ops;
 			}
 
+			//no operand
 			if (operandNumber == -1) {
 				token_table[token_line]->operand[0] = (char*)malloc(sizeof(char) * strlen(tokenizer) + 1);
 				if (tokenizer[strlen(tokenizer) - 1] == '\n') {
@@ -376,6 +374,8 @@ int token_parsing(int index)
 		int idx = 0;
 		int idx2 = 0;
 
+
+		//expression check
 		int tempOperator = -1;//0: -, 1: +
 		int operandLength = strlen(token_table[token_line]->operand[0]);
 		for (i = 0; i <= operandLength; i++) {
@@ -482,6 +482,7 @@ int token_parsing(int index)
 		token_table[token_line]->locctr = -1;
 	}
 	else {
+		//set add(format)
 		int index = search_opcode(operator_);
 
 		if (index == -1) {
@@ -516,7 +517,7 @@ int token_parsing(int index)
 	}
 
 	
-	//literal pool
+	//literal pool(there are no LTORG, END)
 	if (literal_flag == 0) {
 		for (i = 0; i < 3; i++) {
 			if (token_table[token_line]->operand[i] != NULL && token_table[token_line]->operand[i][0] == '=') {
@@ -1130,13 +1131,12 @@ void make_objectcode(char *file_name)
 		printf("\n");
 		token_table[i]->objectCode[0] = 0;
 		strcpy(token_table[i]->objectCode, OC);
-
-
-		//fprintf(fp, "%s\n", token_table[i]->objectCode);
 	}
 
 
-	//make objectProgram
+	/*
+	make object programming
+	*/
 	int startSection = -1;
 	char* extref[10];
 	int extrefIndex = 0;
@@ -1165,8 +1165,7 @@ void make_objectcode(char *file_name)
 						}
 					}
 					
-					
-
+					//search extref and check +,-
 					char tokenTemp[100] = { 0 };
 					int tempIndex = 0;
 					int extrefFlag = 0;
@@ -1216,11 +1215,13 @@ void make_objectcode(char *file_name)
 
 				}
 
+				//initial
 				memset(modify, -1, sizeof(int) * 50);
 				memset(extref, NULL, sizeof(char*) * 10);
 				extrefIndex = 0;
 				modifyIndex = 0;
 				
+				//if operator is START, add start address at End Field 
 				if (strcmp(token_table[startSection]->operator_, "START") == 0) {
 					fprintf(fp, "E%06X\n\n", atoi(token_table[startSection]->operand[0]));
 				}
@@ -1230,6 +1231,7 @@ void make_objectcode(char *file_name)
 		
 			}
 
+			//compute Program length
 			int totalLength = 0;
 			startSection = i;
 			for (int j = i+1; j < token_line; j++) {
@@ -1255,9 +1257,6 @@ void make_objectcode(char *file_name)
 					}
 					else if (token_table[j]->operator_[0] == '+') {
 						totalLength += 4;
-					}
-					else if (strcmp(token_table[j]->operator_, "EXTREF") == 0) {
-
 					}
 					else if (strcmp(token_table[j]->operator_, "CSECT") == 0) {
 						break;
