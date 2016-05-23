@@ -98,7 +98,7 @@ public class InstTable implements XEToyAssemler1{
 	
 	public static int searchOpcode(String operator){
 		if(instructionTable.get(operator) != null){
-			return instructionTable.get(operator).getFormat();
+			return instructionTable.get(operator).getOp();
 		}else{
 			return -1;
 		}

@@ -53,10 +53,13 @@ public class TokenList implements XEToyAssemler1{
 					String operator = null;
 					String operand = null;
 					String command = null;
+				
 					
-					if(temp.charAt(0) == '\t'){
+					char[] tempArray = temp.toCharArray();
+					if(tempArray[0] == '\t'){
 						flag = 1;
 					}
+					
 					
 					while(st.hasMoreTokens()){
 						switch(flag){

@@ -1,6 +1,7 @@
 package project3;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -15,10 +16,10 @@ public class Passer {
 			Token tok = token.get(i);
 			
 			//set start address
-			if(tok.getOperator().equals("START")){
+			if(tok.getOperator() != null && tok.getOperator().equals("START")){
 				loc = Integer.parseInt(token.get(i).getOperand());
 				section++;
-			}else if(tok.getOperator().equals("CSECT")){
+			}else if(tok.getOperator() != null && tok.getOperator().equals("CSECT")){
 				loc = 0;
 				section++;
 			}
@@ -33,7 +34,13 @@ public class Passer {
 			
 			//set PC
 			int instructionSize = 0;
-			int opcode = InstTable.searchOpcode(tok.getOperator());
+			int opcode;
+			if(tok.getOperator() != null){
+				opcode = InstTable.searchOpcode(tok.getOperator());
+			}else{
+				opcode = -1;
+			}
+			
 			if(opcode != -1){
 				int format = InstTable.searchFormat(tok.getOperator());
 				if(format != -1){
@@ -50,31 +57,30 @@ public class Passer {
 					}
 				}
 			}else{
-				if(tok.getOperator().charAt(0) == '+'){
+				if(tok.getOperator() != null && tok.getOperator().charAt(0) == '+'){
 					instructionSize = 4;
-				}else if(tok.getOperator().equals("WORD")){
+				}else if(tok.getOperator() != null && tok.getOperator().equals("WORD")){
 					instructionSize = 3;
-				}else if(tok.getOperator().equals("BYTE")){
+				}else if(tok.getOperator() != null && tok.getOperator().equals("BYTE")){
 					instructionSize = 1;
-				}else if(tok.getOperator().equals("RESW")){
+				}else if(tok.getOperator() != null && tok.getOperator().equals("RESW")){
 					instructionSize = 3 * Integer.parseInt(tok.getOperand());
-				}else if(tok.getOperator().equals("RESB")){
+				}else if(tok.getOperator() != null && tok.getOperator().equals("RESB")){
 					instructionSize = Integer.parseInt(tok.getOperand());
 				}
 			}
 			
 			//store literal at literalTable
-			if(tok.getOperand().charAt(0) == '='){
+			if(tok.getOperand() != null && tok.getOperand().charAt(0) == '='){
 				LiteralTable.add(new Literal(tok.getOperand()));
 			}
 			
 			//assign literals
-			if(tok.getOperator().equals("LTORG")){
-				Set<String> keys = LiteralTable.getLiteralTable().keySet();
-				Iterator<String> itr = keys.iterator();
+			if(tok.getOperator() != null && tok.getOperator().equals("LTORG")){
+				Enumeration<Literal> enumKey = LiteralTable.getLiteralTable().elements();
 				
-				while(itr.hasNext()){
-					Literal lit = LiteralTable.get(itr.next());
+				while(enumKey.hasMoreElements()){
+					Literal lit = enumKey.nextElement();
 					Token tempToken = new Token("*", lit.getName(), lit.getOperand(), null);
 					tempToken.setObjectCode(lit.getOperand());
 					tempToken.setLocationCounter(loc);
@@ -82,7 +88,8 @@ public class Passer {
 					instructionSize = lit.getLength();
 					loc += instructionSize;
 					
-					TokenList.getTokenList().add(i, tempToken);
+					TokenList.getTokenList().add(i+1, tempToken);
+					i++;
 				}
 				
 				instructionSize = 0;
