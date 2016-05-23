@@ -87,7 +87,14 @@ public class InstTable implements XEToyAssemler1{
 		}
 	}
 	
-	
+	/*
+	 * @pre-condition : exist instructionTable
+	 * @post-condition : return format
+	 * @param : String operator
+	 * @return : int
+	 * @activate : search instruction format and return format
+	 * 
+	 */
 	public static int searchFormat(String operator){
 		if(instructionTable.get(operator) != null){
 			return instructionTable.get(operator).getFormat();
@@ -96,6 +103,14 @@ public class InstTable implements XEToyAssemler1{
 		}
 	}
 	
+	/*
+	 * @pre-condition : exist instructionTable
+	 * @post-condition : return opcode
+	 * @param : String operator
+	 * @return : int
+	 * @activate : search instruction opcode and return opcode
+	 * 
+	 */
 	public static int searchOpcode(String operator){
 		if(instructionTable.get(operator) != null){
 			return instructionTable.get(operator).getOp();

@@ -38,7 +38,7 @@ public class SymbolTable {
 	 * @return : void
 	 * @activate : use get method at Hashtable 
 	 */
-	public void get(String input){
-		symbolList.get(input);
+	public static Symbol get(String input){
+		return symbolList.get(input);
 	}
 }

@@ -16,11 +16,15 @@ public class Literal {
 		}
 		
 		String op = new String();
-		for(int i = 3; i < name.length() - 1; i++){
-			System.out.println(name.charAt(i));
-			System.out.println(String.format("%02X", (int)name.charAt(i)));
-			op += String.format("%02X", (int)name.charAt(i));
+		if(name.charAt(1) == 'X'){
+			op = name.substring(3, name.length()-1);
+		}else{
+			for(int i = 3; i < name.length() - 1; i++){
+				op += String.format("%02X", (int)name.charAt(i));
+			}
 		}
+		
+		operand = op;
 		
 		this.loc = 0;
 	}

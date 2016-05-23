@@ -25,6 +25,14 @@ public class TokenList implements XEToyAssemler1{
 		tokenList = new ArrayList<>();
 	}
 
+	/*
+	 * @pre-condition : exist file
+	 * @post-condition : parse file data
+	 * @param : File arg0
+	 * @return : void
+	 * @activate : parse Data
+	 * 
+	 */
 	@Override
 	public void parseData(File arg0) {
 		// TODO Auto-generated method stub
@@ -42,47 +50,43 @@ public class TokenList implements XEToyAssemler1{
 				br = new BufferedReader(isr);
 				
 				String temp = new String();
+				int section = 0;
 				while((temp = br.readLine()) != null){
 					if(temp.charAt(0) == '.'){
 						continue;
 					}
-					StringTokenizer st = new StringTokenizer(temp, "\t");
+
+					String[] st = temp.split("\t");
 					
 					int flag = 0;
-					String label = null;
-					String operator = null;
-					String operand = null;
-					String command = null;
-				
-					
-					char[] tempArray = temp.toCharArray();
-					if(tempArray[0] == '\t'){
-						flag = 1;
-					}
-					
-					
-					while(st.hasMoreTokens()){
-						switch(flag){
+					String label = "";
+					String operator = "";
+					String operand = "";
+					String command = "";
+
+					for(int i = 0; i < st.length; i++){
+						switch(i){
 						case 0:
-							label = st.nextToken();
-							flag++;
+							label = st[0];
 							break;
 						case 1:
-							operator = st.nextToken();
-							flag++;
+							operator = st[1];
 							break;
 						case 2:
-							operand = st.nextToken();
-							flag++;
+							operand = st[2];
 							break;
 						case 3:
-							command = st.nextToken();
+							command = st[3];
 							break;
 						}
 					}
 					
 					
-					Token token = new Token(label, operator, operand, command);
+					if(operator.equals("START") || operator.equals("CSECT")){
+						section++;
+					}
+					
+					Token token = new Token(label, operator, operand, command, section);
 					
 					tokenList.add(token);
 				}

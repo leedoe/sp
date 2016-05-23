@@ -11,6 +11,14 @@ public class Symbol {
 		this.section = section;
 	}
 	
+	public int getSection() {
+		return section;
+	}
+
+	public void setSection(int section) {
+		this.section = section;
+	}
+
 	public int getAddr() {
 		return addr;
 	}
@@ -22,7 +30,5 @@ public class Symbol {
 	}
 	public void setSymbol(String symbol) {
 		this.symbol = symbol;
-	}
-	
-	
+	}	
 }

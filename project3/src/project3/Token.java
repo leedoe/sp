@@ -7,14 +7,24 @@ public class Token {
 	private String operand;
 	private String command;
 	private String objectCode;
+	private int section;
 	
-	Token(String inputLabel, String inputOperator, String inputOperand, String inputCommand){
+	Token(String inputLabel, String inputOperator, String inputOperand, String inputCommand, int section){
 		locationCounter = 0;
 		this.label = inputLabel;
 		this.operator = inputOperator;
 		this.operand = inputOperand;
 		this.command = inputCommand;
 		objectCode = new String();
+		this.section = section;
+	}
+
+	public int getSection() {
+		return section;
+	}
+
+	public void setSection(int section) {
+		this.section = section;
 	}
 
 	public int getLocationCounter() {
@@ -66,11 +76,10 @@ public class Token {
 	}
 	
 	public String toString(){
-		return locationCounter + "\t" +
+		return String.format("%04X", locationCounter) + "\t" +
 				label + "\t" +
 				operator + "\t" +
 				operand + "\t" +
-				command + "\t" +
 				objectCode;
 	}
 }
